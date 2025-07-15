@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Previsão do tempo em tempo real com alertas climáticos e previsão para 5 dias">
+  <title>ClimaAgora | Previsão do Tempo Precisa</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="tempo.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ClimaAgora</h1>
+      <button class="toggle-mode">🌓 Modo Escuro</button>
+    </div>
+    
+    <div class="search-box">
+      <input type="text" id="city-input" placeholder="Ex: Rio de Janeiro" value="São Paulo">
+      <button id="search-btn">Buscar</button>
+    </div>
+    
+    <div class="weather-alerts"></div>
+    
+    <div class="weather-info">
+      <div class="current-weather">
+        <h2 id="city-name">--</h2>
+        <div class="weather-main">
+          <img id="weather-icon" src="https://www.weatherbit.io/static/img/icons/c01d.png" alt="Ícone do tempo">
+          <span id="temperature">--°C</span>
+        </div>
+        <p id="weather-description">--</p>
+        
+        <div class="weather-details">
+          <div class="detail-item">
+            <p>Humidade</p>
+            <span id="humidity">--%</span>
+          </div>
+          <div class="detail-item">
+            <p>Vento</p>
+            <span id="wind-speed">-- m/s</span>
+          </div>
+          <div class="detail-item">
+            <p>Sensação</p>
+            <span id="feels-like">--°C</span>
+          </div>
+          <div class="detail-item">
+            <p>UV</p>
+            <span id="uv-index">--</span>
+          </div>
+        </div>
+      </div>
+      
+      <div id="weather-map" class="weather-map"></div>
+      
+      <div class="temp-chart-container">
+        <canvas id="temp-chart" class="temp-chart"></canvas>
+      </div>
+      
+      <h3>Próximos Dias</h3>
+      <div class="forecast" id="forecast"></div>
+    </div>
+  </div>
+
+  <!-- Bibliotecas Externas -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="tempo.js"></script>
+</body>
+</html>
