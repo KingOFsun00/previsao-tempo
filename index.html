@@ -3,63 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Previsão do tempo em tempo real com alertas climáticos e previsão para 5 dias">
-  <title>ClimaAgora | Previsão do Tempo Precisa</title>
+  <meta name="description" content="Previsão do tempo em tempo real com alertas climáticos, informações de bairro e previsão para 7 dias">
+  <title>ClimaAgora | Previsão do Tempo Inteligente</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="tempo.css">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>ClimaAgora</h1>
-      <button class="toggle-mode">🌓 Modo Escuro</button>
+      <h1><i class="fas fa-cloud-sun"></i> ClimaAgora</h1>
+      <button class="toggle-mode"><i class="fas fa-moon"></i> Modo Escuro</button>
     </div>
     
     <div class="search-box">
-      <input type="text" id="city-input" placeholder="Ex: Rio de Janeiro" value="São Paulo">
-      <button id="search-btn">Buscar</button>
+      <div class="search-input-group">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="city-input" placeholder="Ex: Rio de Janeiro" value="São Paulo">
+        <button id="search-btn"><i class="fas fa-search"></i></button>
+      </div>
+      <button id="location-btn" class="location-btn">
+        <i class="fas fa-location-arrow"></i> Minha Localização
+      </button>
     </div>
     
     <div class="weather-alerts"></div>
     
     <div class="weather-info">
       <div class="current-weather">
-        <h2 id="city-name">--</h2>
+        <div class="city-info">
+          <h2 id="city-name">--</h2>
+          <p id="neighborhood-info" class="neighborhood-info">
+            <i class="fas fa-map-marker-alt"></i> <span id="neighborhood">--</span>
+          </p>
+        </div>
+        
         <div class="weather-main">
           <img id="weather-icon" src="https://www.weatherbit.io/static/img/icons/c01d.png" alt="Ícone do tempo">
-          <span id="temperature">--°C</span>
+          <div class="temp-info">
+            <span id="temperature">--°C</span>
+            <span id="feels-like" class="feels-like">Sensação: --°C</span>
+          </div>
         </div>
+        
         <p id="weather-description">--</p>
         
         <div class="weather-details">
           <div class="detail-item">
+            <i class="fas fa-tint"></i>
             <p>Humidade</p>
             <span id="humidity">--%</span>
           </div>
           <div class="detail-item">
+            <i class="fas fa-wind"></i>
             <p>Vento</p>
             <span id="wind-speed">-- m/s</span>
           </div>
           <div class="detail-item">
-            <p>Sensação</p>
-            <span id="feels-like">--°C</span>
+            <i class="fas fa-eye"></i>
+            <p>Visibilidade</p>
+            <span id="visibility">-- km</span>
           </div>
           <div class="detail-item">
+            <i class="fas fa-sun"></i>
             <p>UV</p>
             <span id="uv-index">--</span>
+          </div>
+          <div class="detail-item">
+            <i class="fas fa-cloud-rain"></i>
+            <p>Precipitação</p>
+            <span id="precipitation">-- mm</span>
+          </div>
+          <div class="detail-item">
+            <i class="fas fa-compress-arrows-alt"></i>
+            <p>Pressão</p>
+            <span id="pressure">-- hPa</span>
           </div>
         </div>
       </div>
       
-      <div id="weather-map" class="weather-map"></div>
-      
-      <div class="temp-chart-container">
-        <canvas id="temp-chart" class="temp-chart"></canvas>
+      <div class="maps-section">
+        <div class="map-container">
+          <h3><i class="fas fa-map"></i> Localização</h3>
+          <div id="weather-map" class="weather-map"></div>
+        </div>
+        
+        <div class="neighborhood-info-card">
+          <h3><i class="fas fa-info-circle"></i> Informações do Bairro</h3>
+          <div id="neighborhood-details" class="neighborhood-details">
+            <div class="neighborhood-item">
+              <i class="fas fa-building"></i>
+              <span>Carregando informações...</span>
+            </div>
+          </div>
+        </div>
       </div>
       
-      <h3>Próximos Dias</h3>
-      <div class="forecast" id="forecast"></div>
+      <div class="charts-section">
+        <div class="chart-container">
+          <h3><i class="fas fa-chart-line"></i> Temperatura (7 Dias)</h3>
+          <canvas id="temp-chart" class="temp-chart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+          <h3><i class="fas fa-chart-bar"></i> Precipitação</h3>
+          <canvas id="precipitation-chart" class="precipitation-chart"></canvas>
+        </div>
+      </div>
+      
+      <div class="forecast-section">
+        <h3><i class="fas fa-calendar-alt"></i> Previsão para 7 Dias</h3>
+        <div class="forecast" id="forecast"></div>
+      </div>
+      
+      <div class="hourly-forecast">
+        <h3><i class="fas fa-clock"></i> Previsão por Hora</h3>
+        <div class="hourly-scroll" id="hourly-forecast"></div>
+      </div>
     </div>
   </div>
 
