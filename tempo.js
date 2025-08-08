@@ -408,7 +408,14 @@ function updateCharts(forecastList) {
 }
 
 function updateTemperatureChart(forecastList) {
-  const ctx = document.getElementById('temp-chart').getContext('2d');
+  const canvas = document.getElementById('temp-chart');
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas size explicitly
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
   
   if (weatherChart) {
     weatherChart.destroy();
@@ -509,11 +516,18 @@ function updateTemperatureChart(forecastList) {
     if (weatherChart) {
       weatherChart.resize();
     }
-  }, 100);
+  }, 200);
 }
 
 function updatePrecipitationChart(forecastList) {
-  const ctx = document.getElementById('precipitation-chart').getContext('2d');
+  const canvas = document.getElementById('precipitation-chart');
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas size explicitly
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
   
   if (precipitationChart) {
     precipitationChart.destroy();
@@ -604,7 +618,7 @@ function updatePrecipitationChart(forecastList) {
     if (precipitationChart) {
       precipitationChart.resize();
     }
-  }, 100);
+  }, 200);
 }
 
 // Handlers

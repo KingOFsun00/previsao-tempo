@@ -403,6 +403,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .chart-container h3 {
@@ -410,6 +411,7 @@ body {
   font-size: 1.3rem;
   color: var(--accent-color);
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .temp-chart, .precipitation-chart {
@@ -419,6 +421,18 @@ body {
   min-height: 250px;
   max-height: 280px;
   position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.temp-chart canvas, .precipitation-chart canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
 }
 
 /* Forecast Section */
