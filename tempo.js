@@ -1,5 +1,5 @@
 // Configurações
-const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'; // Get free key from https://openweathermap.org/api
+const API_KEY = '04ea5b0b6b77665f130a46c0c2ad67ea';
 let currentCity = 'São Paulo';
 let weatherMap = null;
 let weatherChart = null;
