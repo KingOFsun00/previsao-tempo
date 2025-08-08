@@ -57,8 +57,8 @@ async function fetchWeather(city) {
     elements.cityName.textContent = "Buscando...";
     elements.neighborhood.textContent = "Carregando...";
     
-    // Se não tiver API key, usa dados mock para demonstração
-    if (API_KEY === '04ea5b0b6b77665f130a46c0c2ad67ea') {
+    // Se não tiver API key válida, usa dados mock para demonstração
+    if (!API_KEY || API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY') {
       showMockData(city);
       return;
     }
@@ -269,7 +269,7 @@ function getLocation() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          if (API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY') {
+          if (!API_KEY || API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY') {
             // Usa dados mock para demonstração
             currentCity = 'Sua Localização';
             elements.cityInput.value = currentCity;
