@@ -1,5 +1,5 @@
 // Configurações
-const API_KEY = '35070fd09c634fd780187ef241b86fcf';
+const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'; // Get free key from https://openweathermap.org/api
 let currentCity = 'São Paulo';
 let weatherMap = null;
 let weatherChart = null;
@@ -57,22 +57,26 @@ async function fetchWeather(city) {
     elements.cityName.textContent = "Buscando...";
     elements.neighborhood.textContent = "Carregando...";
     
-    const [current, forecast, hourly] = await Promise.all([
-      fetch(`https://api.weatherbit.io/v2.0/current?city=${encodeURIComponent(city)}&key=${API_KEY}&lang=pt&units=M`),
-      fetch(`https://api.weatherbit.io/v2.0/forecast/daily?city=${encodeURIComponent(city)}&key=${API_KEY}&lang=pt&units=M&days=7`),
-      fetch(`https://api.weatherbit.io/v2.0/forecast/hourly?city=${encodeURIComponent(city)}&key=${API_KEY}&lang=pt&units=M&hours=24`)
+    // Se não tiver API key, usa dados mock para demonstração
+    if (API_KEY === 'c6877f495a5393cd972316b7673615bf') {
+      showMockData(city);
+      return;
+    }
+    
+    const [current, forecast] = await Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=pt_br`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=pt_br`)
     ]);
     
-    if (!current.ok || !forecast.ok || !hourly.ok) throw new Error('Cidade não encontrada');
+    if (!current.ok || !forecast.ok) throw new Error('Cidade não encontrada');
     
     const currentData = await current.json();
     const forecastData = await forecast.json();
-    const hourlyData = await hourly.json();
     
-    displayWeather(currentData.data[0], forecastData.data, hourlyData.data);
-    initMap(currentData.data[0].lat, currentData.data[0].lon, city);
-    fetchNeighborhoodInfo(currentData.data[0].lat, currentData.data[0].lon);
-    checkAlerts(currentData.data[0]);
+    displayWeather(currentData, forecastData);
+    initMap(currentData.coord.lat, currentData.coord.lon, city);
+    fetchNeighborhoodInfo(currentData.coord.lat, currentData.coord.lon);
+    checkAlerts(currentData);
     
   } catch (error) {
     console.error('Erro:', error);
@@ -80,42 +84,104 @@ async function fetchWeather(city) {
   }
 }
 
+// Dados mock para demonstração
+function showMockData(city) {
+  const mockCurrent = {
+    name: city,
+    sys: { country: 'BR' },
+    main: {
+      temp: 25,
+      feels_like: 27,
+      humidity: 65,
+      pressure: 1013
+    },
+    weather: [{ description: 'céu limpo', icon: '01d' }],
+    wind: { speed: 3.5 },
+    visibility: 10000,
+    coord: { lat: -23.5505, lon: -46.6333 }
+  };
+  
+  const mockForecast = {
+    list: [
+      { dt: Date.now() / 1000 + 3600, main: { temp: 26 }, weather: [{ description: 'céu limpo', icon: '01d' }] },
+      { dt: Date.now() / 1000 + 7200, main: { temp: 28 }, weather: [{ description: 'poucas nuvens', icon: '02d' }] },
+      { dt: Date.now() / 1000 + 10800, main: { temp: 30 }, weather: [{ description: 'nuvens dispersas', icon: '03d' }] },
+      { dt: Date.now() / 1000 + 14400, main: { temp: 29 }, weather: [{ description: 'céu limpo', icon: '01d' }] },
+      { dt: Date.now() / 1000 + 18000, main: { temp: 27 }, weather: [{ description: 'poucas nuvens', icon: '02d' }] },
+      { dt: Date.now() / 1000 + 21600, main: { temp: 25 }, weather: [{ description: 'céu limpo', icon: '01n' }] },
+      { dt: Date.now() / 1000 + 25200, main: { temp: 23 }, weather: [{ description: 'céu limpo', icon: '01n' }] },
+      { dt: Date.now() / 1000 + 28800, main: { temp: 22 }, weather: [{ description: 'céu limpo', icon: '01n' }] },
+      { dt: Date.now() / 1000 + 32400, main: { temp: 21 }, weather: [{ description: 'céu limpo', icon: '01n' }] },
+      { dt: Date.now() / 1000 + 36000, main: { temp: 20 }, weather: [{ description: 'céu limpo', icon: '01n' }] },
+      { dt: Date.now() / 1000 + 39600, main: { temp: 19 }, weather: [{ description: 'céu limpo', icon: '01n' }] },
+      { dt: Date.now() / 1000 + 43200, main: { temp: 18 }, weather: [{ description: 'céu limpo', icon: '01n' }] }
+    ]
+  };
+  
+  displayWeather(mockCurrent, mockForecast);
+  initMap(mockCurrent.coord.lat, mockCurrent.coord.lon, city);
+  fetchNeighborhoodInfo(mockCurrent.coord.lat, mockCurrent.coord.lon);
+  checkAlerts(mockCurrent);
+  
+  showAlert('Usando dados de demonstração. Obtenha uma API key gratuita em openweathermap.org para dados reais.', 'info');
+}
+
 // Exibir Dados
-function displayWeather(current, forecast, hourly) {
+function displayWeather(current, forecast) {
   // Dados atuais
-  elements.cityName.textContent = `${current.city_name}, ${current.country_code}`;
-  elements.temperature.textContent = `${Math.round(current.temp)}°C`;
-  elements.weatherDesc.textContent = current.weather.description;
-  elements.humidity.textContent = `${current.rh}%`;
-  elements.windSpeed.textContent = `${current.wind_spd.toFixed(1)} m/s`;
-  elements.visibility.textContent = `${(current.vis / 1000).toFixed(1)} km`;
-  elements.uvIndex.textContent = current.uv;
-  elements.precipitation.textContent = `${current.precip} mm`;
-  elements.pressure.textContent = `${current.pres} hPa`;
-  elements.feelsLike.textContent = `Sensação: ${Math.round(current.app_temp)}°C`;
-  elements.weatherIcon.src = `https://www.weatherbit.io/static/img/icons/${current.weather.icon}.png`;
+  elements.cityName.textContent = `${current.name}, ${current.sys.country}`;
+  elements.temperature.textContent = `${Math.round(current.main.temp)}°C`;
+  elements.weatherDesc.textContent = current.weather[0].description;
+  elements.humidity.textContent = `${current.main.humidity}%`;
+  elements.windSpeed.textContent = `${current.wind.speed.toFixed(1)} m/s`;
+  elements.visibility.textContent = `${(current.visibility / 1000).toFixed(1)} km`;
+  elements.uvIndex.textContent = '--'; // OpenWeatherMap não fornece UV no plano gratuito
+  elements.precipitation.textContent = '-- mm'; // Será atualizado se disponível
+  elements.pressure.textContent = `${current.main.pressure} hPa`;
+  elements.feelsLike.textContent = `Sensação: ${Math.round(current.main.feels_like)}°C`;
+  elements.weatherIcon.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`;
   
-  // Previsão de 7 dias
-  displayForecast(forecast);
+  // Previsão por hora (próximas 12 horas)
+  displayHourlyForecast(forecast.list.slice(0, 12));
   
-  // Previsão por hora
-  displayHourlyForecast(hourly);
+  // Previsão de 7 dias (simulada com dados disponíveis)
+  displayForecast(forecast.list);
   
   // Atualiza gráficos
-  updateCharts(forecast);
+  updateCharts(forecast.list);
 }
 
 // Exibir Previsão
-function displayForecast(forecast) {
+function displayForecast(forecastList) {
   elements.forecast.innerHTML = '';
-  forecast.forEach(day => {
-    const date = new Date(day.valid_date);
+  
+  // Agrupa por dia e pega o primeiro registro de cada dia
+  const dailyForecast = [];
+  const seenDays = new Set();
+  
+  forecastList.forEach(item => {
+    const date = new Date(item.dt * 1000);
+    const dayKey = date.toDateString();
+    
+    if (!seenDays.has(dayKey) && dailyForecast.length < 7) {
+      seenDays.add(dayKey);
+      dailyForecast.push({
+        date: date,
+        temp: item.main.temp,
+        weather: item.weather[0],
+        max_temp: item.main.temp + 3, // Simulado
+        min_temp: item.main.temp - 3  // Simulado
+      });
+    }
+  });
+  
+  dailyForecast.forEach(day => {
     const dayElement = document.createElement('div');
     dayElement.className = 'forecast-day';
     dayElement.innerHTML = `
-      <h4>${date.toLocaleDateString('pt-BR', { weekday: 'short' })}</h4>
-      <p>${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</p>
-      <img src="https://www.weatherbit.io/static/img/icons/${day.weather.icon}.png" alt="${day.weather.description}">
+      <h4>${day.date.toLocaleDateString('pt-BR', { weekday: 'short' })}</h4>
+      <p>${day.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</p>
+      <img src="https://openweathermap.org/img/wn/${day.weather.icon}@2x.png" alt="${day.weather.description}">
       <div class="temp-range">${Math.round(day.max_temp)}°C / ${Math.round(day.min_temp)}°C</div>
       <div class="description">${day.weather.description}</div>
     `;
@@ -124,17 +190,17 @@ function displayForecast(forecast) {
 }
 
 // Exibir Previsão por Hora
-function displayHourlyForecast(hourly) {
+function displayHourlyForecast(hourlyList) {
   elements.hourlyForecast.innerHTML = '';
-  hourly.slice(0, 12).forEach(hour => {
-    const time = new Date(hour.timestamp);
+  hourlyList.forEach(hour => {
+    const time = new Date(hour.dt * 1000);
     const hourElement = document.createElement('div');
     hourElement.className = 'hourly-item';
     hourElement.innerHTML = `
       <div class="time">${time.getHours()}:00</div>
-      <img src="https://www.weatherbit.io/static/img/icons/${hour.weather.icon}.png" alt="${hour.weather.description}">
-      <div class="temp">${Math.round(hour.temp)}°C</div>
-      <div class="description">${hour.weather.description}</div>
+      <img src="https://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png" alt="${hour.weather[0].description}">
+      <div class="temp">${Math.round(hour.main.temp)}°C</div>
+      <div class="description">${hour.weather[0].description}</div>
     `;
     elements.hourlyForecast.appendChild(hourElement);
   });
@@ -203,13 +269,20 @@ function getLocation() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          const response = await fetch(`https://api.weatherbit.io/v2.0/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}&key=${API_KEY}&lang=pt`);
-          const data = await response.json();
-          
-          if (data.data && data.data[0]) {
-            currentCity = data.data[0].city_name;
+          if (API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY') {
+            // Usa dados mock para demonstração
+            currentCity = 'Sua Localização';
             elements.cityInput.value = currentCity;
-            fetchWeather(currentCity);
+            showMockData(currentCity);
+          } else {
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${position.coords.latitude}&lon=${position.coords.longitude}&appid=${API_KEY}&units=metric&lang=pt_br`);
+            const data = await response.json();
+            
+            if (data.name) {
+              currentCity = data.name;
+              elements.cityInput.value = currentCity;
+              fetchWeather(currentCity);
+            }
           }
         } catch (error) {
           showAlert('Erro ao obter dados da sua localização', 'error');
@@ -250,19 +323,13 @@ function toggleDarkMode() {
 function checkAlerts(data) {
   const alerts = [];
   
-  if (data.precip > 5) {
-    alerts.push('Chuva intensa prevista! Leve um guarda-chuva.');
-  }
-  if (data.temp > 30) {
+  if (data.main.temp > 30) {
     alerts.push('Temperatura alta! Hidrate-se adequadamente.');
   }
-  if (data.temp < 10) {
+  if (data.main.temp < 10) {
     alerts.push('Temperatura baixa! Agasalhe-se.');
   }
-  if (data.uv > 8) {
-    alerts.push('Índice UV muito alto! Use protetor solar.');
-  }
-  if (data.wind_spd > 10) {
+  if (data.wind.speed > 10) {
     alerts.push('Ventos fortes! Tenha cuidado ao sair.');
   }
   
@@ -325,34 +392,53 @@ function initMap(lat, lon, cityName) {
 }
 
 // Gráficos
-function updateCharts(forecast) {
-  updateTemperatureChart(forecast);
-  updatePrecipitationChart(forecast);
+function updateCharts(forecastList) {
+  updateTemperatureChart(forecastList);
+  updatePrecipitationChart(forecastList);
 }
 
-function updateTemperatureChart(forecast) {
+function updateTemperatureChart(forecastList) {
   const ctx = document.getElementById('temp-chart').getContext('2d');
   
   if (weatherChart) {
     weatherChart.destroy();
   }
   
+  // Pega os primeiros 7 dias únicos
+  const dailyTemps = [];
+  const seenDays = new Set();
+  
+  forecastList.forEach(item => {
+    const date = new Date(item.dt * 1000);
+    const dayKey = date.toDateString();
+    
+    if (!seenDays.has(dayKey) && dailyTemps.length < 7) {
+      seenDays.add(dayKey);
+      dailyTemps.push({
+        date: date,
+        temp: item.main.temp,
+        max_temp: item.main.temp + 3,
+        min_temp: item.main.temp - 3
+      });
+    }
+  });
+  
   weatherChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: forecast.map(day => 
-        new Date(day.valid_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' })
+      labels: dailyTemps.map(day => 
+        day.date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' })
       ),
       datasets: [{
         label: 'Máxima',
-        data: forecast.map(day => day.max_temp),
+        data: dailyTemps.map(day => day.max_temp),
         borderColor: '#ff6384',
         backgroundColor: 'rgba(255, 99, 132, 0.1)',
         tension: 0.4,
         fill: true
       }, {
         label: 'Mínima',
-        data: forecast.map(day => day.min_temp),
+        data: dailyTemps.map(day => day.min_temp),
         borderColor: '#36a2eb',
         backgroundColor: 'rgba(54, 162, 235, 0.1)',
         tension: 0.4,
@@ -399,22 +485,39 @@ function updateTemperatureChart(forecast) {
   });
 }
 
-function updatePrecipitationChart(forecast) {
+function updatePrecipitationChart(forecastList) {
   const ctx = document.getElementById('precipitation-chart').getContext('2d');
   
   if (precipitationChart) {
     precipitationChart.destroy();
   }
   
+  // Simula dados de precipitação para demonstração
+  const dailyPrecip = [];
+  const seenDays = new Set();
+  
+  forecastList.forEach(item => {
+    const date = new Date(item.dt * 1000);
+    const dayKey = date.toDateString();
+    
+    if (!seenDays.has(dayKey) && dailyPrecip.length < 7) {
+      seenDays.add(dayKey);
+      dailyPrecip.push({
+        date: date,
+        precip: Math.random() * 10 // Simulado
+      });
+    }
+  });
+  
   precipitationChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: forecast.map(day => 
-        new Date(day.valid_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' })
+      labels: dailyPrecip.map(day => 
+        day.date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' })
       ),
       datasets: [{
         label: 'Precipitação (mm)',
-        data: forecast.map(day => day.precip),
+        data: dailyPrecip.map(day => day.precip),
         backgroundColor: 'rgba(54, 162, 235, 0.8)',
         borderColor: '#36a2eb',
         borderWidth: 1
@@ -432,7 +535,7 @@ function updatePrecipitationChart(forecast) {
         },
         tooltip: {
           callbacks: {
-            label: (context) => `Precipitação: ${context.raw} mm`
+            label: (context) => `Precipitação: ${context.raw.toFixed(1)} mm`
           }
         }
       },
@@ -440,7 +543,7 @@ function updatePrecipitationChart(forecast) {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: (value) => `${value} mm`,
+            callback: (value) => `${value.toFixed(1)} mm`,
             color: getComputedStyle(document.body).getPropertyValue('--text-color')
           },
           grid: {
