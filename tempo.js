@@ -49,6 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
   }
+  
+  // Handle window resize for charts
+  window.addEventListener('resize', () => {
+    if (weatherChart) {
+      weatherChart.resize();
+    }
+    if (precipitationChart) {
+      precipitationChart.resize();
+    }
+  });
 });
 
 // Funções Principais
@@ -448,11 +458,19 @@ function updateTemperatureChart(forecastList) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 10,
+          bottom: 10
+        }
+      },
       plugins: {
         legend: {
           position: 'top',
           labels: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color')
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            usePointStyle: true,
+            padding: 10
           }
         },
         tooltip: {
@@ -466,7 +484,8 @@ function updateTemperatureChart(forecastList) {
           beginAtZero: false,
           ticks: {
             callback: (value) => `${value}°C`,
-            color: getComputedStyle(document.body).getPropertyValue('--text-color')
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            padding: 5
           },
           grid: {
             color: 'rgba(255, 255, 255, 0.1)'
@@ -474,7 +493,8 @@ function updateTemperatureChart(forecastList) {
         },
         x: {
           ticks: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color')
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            padding: 5
           },
           grid: {
             color: 'rgba(255, 255, 255, 0.1)'
@@ -483,6 +503,13 @@ function updateTemperatureChart(forecastList) {
       }
     }
   });
+  
+  // Force chart resize after creation
+  setTimeout(() => {
+    if (weatherChart) {
+      weatherChart.resize();
+    }
+  }, 100);
 }
 
 function updatePrecipitationChart(forecastList) {
@@ -526,11 +553,19 @@ function updatePrecipitationChart(forecastList) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 10,
+          bottom: 10
+        }
+      },
       plugins: {
         legend: {
           position: 'top',
           labels: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color')
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            usePointStyle: true,
+            padding: 10
           }
         },
         tooltip: {
@@ -544,7 +579,8 @@ function updatePrecipitationChart(forecastList) {
           beginAtZero: true,
           ticks: {
             callback: (value) => `${value.toFixed(1)} mm`,
-            color: getComputedStyle(document.body).getPropertyValue('--text-color')
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            padding: 5
           },
           grid: {
             color: 'rgba(255, 255, 255, 0.1)'
@@ -552,7 +588,8 @@ function updatePrecipitationChart(forecastList) {
         },
         x: {
           ticks: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color')
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            padding: 5
           },
           grid: {
             color: 'rgba(255, 255, 255, 0.1)'
@@ -561,6 +598,13 @@ function updatePrecipitationChart(forecastList) {
       }
     }
   });
+  
+  // Force chart resize after creation
+  setTimeout(() => {
+    if (precipitationChart) {
+      precipitationChart.resize();
+    }
+  }, 100);
 }
 
 // Handlers
