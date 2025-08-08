@@ -58,7 +58,7 @@ async function fetchWeather(city) {
     elements.neighborhood.textContent = "Carregando...";
     
     // Se não tiver API key, usa dados mock para demonstração
-    if (API_KEY === 'c6877f495a5393cd972316b7673615bf') {
+    if (API_KEY === '04ea5b0b6b77665f130a46c0c2ad67ea') {
       showMockData(city);
       return;
     }
